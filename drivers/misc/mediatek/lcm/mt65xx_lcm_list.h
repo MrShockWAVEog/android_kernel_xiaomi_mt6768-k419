@@ -323,6 +323,15 @@ extern struct LCM_DRIVER sofeg01_fhdplus_dsi_cmd_samsung_lcm_drv;
 extern struct LCM_DRIVER nt36672c_fhdp_dsi_vdo_auo_cphy_90hz_tianma_lcm_drv;
 #endif
 
+extern struct LCM_DRIVER nt36672A_fhdp_dsi_vdo_tianma_lcm_drv;
+extern struct LCM_DRIVER ft8719_fhdp_dsi_vdo_xinli_lcm_drv;
+extern struct LCM_DRIVER nt36672A_fhdp_dsi_vdo_tianma_lcm_drv_G6;
+extern struct LCM_DRIVER nt36672A_fhdp_dsi_vdo_tianma_j19_lcm_drv;
+extern struct LCM_DRIVER ft8719_fhdp_dsi_vdo_huaxing_j19_lcm_drv;
+extern struct LCM_DRIVER nt36672A_fhdp_dsi_vdo_dijing_j19_lcm_drv;
+extern struct LCM_DRIVER ft8201_wuxga_dsi_vdo_boe_lcm_drv;
+extern struct LCM_DRIVER ft8756_fhdp_dsi_vdo_auo_rt4801_lcm_drv;
+extern struct LCM_DRIVER hx83102p_wuxga2000_dsi_vdo_boe_lcm_drv;
 extern struct LCM_DRIVER oppo_tianma_td4310_fhdp_dsi_vdo_rt5081_lcm_drv;
 extern struct LCM_DRIVER nt36672c_fhdp_dsi_vdo_60hz_shenchao_lcm_drv;
 extern struct LCM_DRIVER nt36672c_fhdp_dsi_vdo_90hz_shenchao_lcm_drv;
@@ -340,6 +349,9 @@ extern struct LCM_DRIVER nt36672c_fhdp_dsi_vdo_120hz_shenchao_6382_lcm_drv;
 extern struct LCM_DRIVER nt36672c_fhdp_dsi_vdo_auo_cphy_90hz_jdi_lcm_drv;
 extern struct LCM_DRIVER nt36672c_fhdp_dsi_vdo_dsc_txd_boe_lcm_drv;
 extern struct LCM_DRIVER kd070fhfid015_dsi_1200x1920_lcm_drv;
+
+extern struct LCM_DRIVER nt36672D_fhdp_dsi_vdo_dijing_j19_lcm_drv;
+extern struct LCM_DRIVER nt36672D_fhdp_dsi_vdo_tianma_lcm_drv;
 
 #ifdef BUILD_LK
 extern void mdelay(unsigned long msec);
