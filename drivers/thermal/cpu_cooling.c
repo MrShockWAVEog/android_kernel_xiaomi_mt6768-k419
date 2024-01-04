@@ -26,6 +26,7 @@
 #include <linux/thermal.h>
 #include <linux/cpufreq.h>
 #include <linux/err.h>
+#include <linux/idr.h>
 #include <linux/pm_opp.h>
 #include <linux/slab.h>
 #include <linux/cpu.h>
@@ -94,6 +95,7 @@ struct cpufreq_cooling_device {
 	struct cpu_cooling_ops *plat_ops;
 };
 
+static DEFINE_IDA(cpufreq_ida);
 static DEFINE_MUTEX(cooling_list_lock);
 static LIST_HEAD(cpufreq_cdev_list);
 
@@ -408,7 +410,7 @@ static int cpufreq_get_requested_power(struct thermal_cooling_device *cdev,
 			load = 0;
 
 		total_load += load;
-		if (load_cpu)
+		if (trace_thermal_power_cpu_limit_enabled() && load_cpu)
 			load_cpu[i] = load;
 
 		i++;
@@ -556,6 +558,7 @@ __cpufreq_cooling_register(struct device_node *np,
 	unsigned int i, num_cpus;
 	struct thermal_cooling_device_ops *cooling_ops;
 	bool first;
+	int ret;
 
 	if (IS_ERR_OR_NULL(policy)) {
 		pr_err("%s: cpufreq policy isn't valid: %p\n", __func__, policy);
@@ -601,7 +604,12 @@ __cpufreq_cooling_register(struct device_node *np,
 #endif
 		cooling_ops = &cpufreq_cooling_ops;
 
-	cpufreq_cdev->id = policy->cpu;
+	ret = ida_simple_get(&cpufreq_ida, 0, 0, GFP_KERNEL);
+	if (ret < 0) {
+		cdev = ERR_PTR(ret);
+		goto free_idle_time;
+	}
+	cpufreq_cdev->id = ret;
 
 	snprintf(dev_name, sizeof(dev_name), "thermal-cpufreq-%d",
 		 cpufreq_cdev->id);
@@ -610,7 +618,7 @@ __cpufreq_cooling_register(struct device_node *np,
 	cdev = thermal_of_cooling_device_register(np, dev_name, cpufreq_cdev,
 						  cooling_ops);
 	if (IS_ERR(cdev))
-		goto free_idle_time;
+		goto remove_ida;
 
 	cpufreq_cdev->clipped_freq = get_state_freq(cpufreq_cdev, 0);
 	cpufreq_cdev->cdev = cdev;
@@ -626,7 +634,8 @@ __cpufreq_cooling_register(struct device_node *np,
 					  CPUFREQ_POLICY_NOTIFIER);
 
 	return cdev;
-
+remove_ida:
+	ida_simple_remove(&cpufreq_ida, cpufreq_cdev->id);
 free_idle_time:
 	kfree(cpufreq_cdev->idle_time);
 free_cdev:
@@ -728,6 +737,50 @@ cpufreq_platform_cooling_register(struct cpufreq_policy *policy,
 }
 EXPORT_SYMBOL(cpufreq_platform_cooling_register);
 
+#ifdef CONFIG_MTK_CPU_FREQ
+static bool cpufreq_cooling_policy_registered(struct cpufreq_policy *policy)
+{
+	struct cpufreq_cooling_device *cpufreq_cdev;
+	bool registered = false;
+
+	mutex_lock(&cooling_list_lock);
+	list_for_each_entry(cpufreq_cdev, &cpufreq_cdev_list, node) {
+		if (cpufreq_cdev->policy == policy) {
+			registered = true;
+			break;
+		}
+	}
+	mutex_unlock(&cooling_list_lock);
+
+	return registered;
+}
+
+static int __init mtk_cpufreq_cooling_init(void)
+{
+	struct thermal_cooling_device *cdev;
+	struct cpufreq_policy *policy;
+	int cpu;
+
+	for_each_online_cpu(cpu) {
+		policy = cpufreq_cpu_get(cpu);
+		if (!policy)
+			continue;
+
+		if (!cpufreq_cooling_policy_registered(policy)) {
+			cdev = cpufreq_platform_cooling_register(policy, NULL);
+			if (IS_ERR(cdev))
+				pr_err("cpu_cooling: CPU%d policy registration failed: %ld\n",
+				       policy->cpu, PTR_ERR(cdev));
+		}
+
+		cpufreq_cpu_put(policy);
+	}
+
+	return 0;
+}
+late_initcall_sync(mtk_cpufreq_cooling_init);
+#endif
+
 /**
  * cpufreq_cooling_unregister - function to remove cpufreq cooling device.
  * @cdev: thermal cooling device pointer.
@@ -749,12 +802,12 @@ void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev)
 	/* Unregister the notifier for the last cpufreq cooling device */
 	last = list_empty(&cpufreq_cdev_list);
 	mutex_unlock(&cooling_list_lock);
-
 	if (last)
 		cpufreq_unregister_notifier(&thermal_cpufreq_notifier_block,
 					    CPUFREQ_POLICY_NOTIFIER);
 
 	thermal_cooling_device_unregister(cpufreq_cdev->cdev);
+	ida_simple_remove(&cpufreq_ida, cpufreq_cdev->id);
 	kfree(cpufreq_cdev->idle_time);
 	kfree(cpufreq_cdev);
 }
