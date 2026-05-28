@@ -1906,9 +1906,11 @@ static long mtk_vcu_unlocked_ioctl(struct file *file, unsigned int cmd,
 	case VCU_GET_LOG_OBJECT:
 		ret = vcu_log_get(vcu_dev, arg);
 		break;
+#if !IS_ENABLED(CONFIG_VIDEO_MEDIATEK_VCODEC_LEGACY)
 	case VCU_SET_LOG_OBJECT:
 		ret = vcu_log_set(vcu_dev, arg);
 		break;
+#endif
 	case VCU_MVA_ALLOCATION:
 	case VCU_PA_ALLOCATION:
 		user_data_addr = (unsigned char *)arg;
@@ -2106,7 +2108,9 @@ static long mtk_vcu_unlocked_compat_ioctl(struct file *file, unsigned int cmd,
 	case COMPAT_VCU_SET_OBJECT:
 	case VCU_GET_OBJECT:
 	case VCU_GET_LOG_OBJECT:
+#if !IS_ENABLED(CONFIG_VIDEO_MEDIATEK_VCODEC_LEGACY)
 	case VCU_SET_LOG_OBJECT:
+#endif
 	case VCU_GCE_SET_CMD_FLUSH:
 	case VCU_GCE_WAIT_CALLBACK:
 		share_data32 = compat_ptr((uint32_t)arg);
@@ -2207,7 +2211,9 @@ int mtk_vcu_write(const char *val, const struct kernel_param *kp)
 			}
 			usleep_range(10000, 20000);
 		}
+#if !IS_ENABLED(CONFIG_VIDEO_MEDIATEK_VCODEC_LEGACY)
 		vcu_ptr->vdec_log_info->type = 0;
+#endif
 		memcpy(vcu_ptr->vdec_log_info->log_info,
 			val, strnlen(val, LOG_INFO_SIZE - 1) + 1);
 	} else {
@@ -2230,7 +2236,11 @@ int mtk_vcu_write(const char *val, const struct kernel_param *kp)
 
 	pr_info("[S: log wakeup VPUD] log_info %p type %d vcu_ptr %p val %p: %s %lu\n",
 		(char *)vcu_ptr->vdec_log_info->log_info,
+#if IS_ENABLED(CONFIG_VIDEO_MEDIATEK_VCODEC_LEGACY)
+		0,
+#else
 		vcu_ptr->vdec_log_info->type,
+#endif
 		vcu_ptr, val, val,
 		(unsigned long)strnlen(val, LOG_INFO_SIZE - 1) + 1);
 
@@ -2279,7 +2289,9 @@ int vcu_get_log(char *val, unsigned int val_len)
 			}
 			usleep_range(10000, 20000);
 		}
+#if !IS_ENABLED(CONFIG_VIDEO_MEDIATEK_VCODEC_LEGACY)
 		vcu_ptr->vdec_log_info->type = 1;
+#endif
 	} else {
 		pr_info("[VCU] %s(%d) return\n", __func__, __LINE__);
 		mutex_unlock(&vcu_ptr->log_lock);
@@ -2288,7 +2300,12 @@ int vcu_get_log(char *val, unsigned int val_len)
 
 	pr_info("[G: log wakeup VPUD] log_info %p type %d vcu_ptr %p\n",
 		(char *)vcu_ptr->vdec_log_info->log_info,
-		vcu_ptr->vdec_log_info->type, vcu_ptr);
+#if IS_ENABLED(CONFIG_VIDEO_MEDIATEK_VCODEC_LEGACY)
+		1,
+#else
+		vcu_ptr->vdec_log_info->type,
+#endif
+		vcu_ptr);
 
 	atomic_set(&vcu_ptr->vdec_log_got, 1);
 	wake_up(&vcu_ptr->vdec_log_get_wq);

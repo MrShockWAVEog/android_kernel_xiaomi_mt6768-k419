@@ -223,7 +223,9 @@ struct share_obj {
 };
 
 struct log_test_nofuse {
+#if !IS_ENABLED(CONFIG_VIDEO_MEDIATEK_VCODEC_LEGACY)
 	int type; // 0: set log from ks to us; 1: get log from us to ks;
+#endif
 	char log_info[LOG_INFO_SIZE];
 };
 
