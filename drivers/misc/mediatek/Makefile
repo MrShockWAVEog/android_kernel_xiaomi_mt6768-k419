@@ -208,3 +208,4 @@ obj-$(CONFIG_MTK_GATE_IC) += gate_ic/
 obj-$(CONFIG_MTK_FREQ_HOPPING) += freqhopping/
 obj-$(CONFIG_MTK_TASK_TURBO) += task_turbo/
 obj-$(CONFIG_AW862xx_HAPTIC) += aw862xx_haptic/
+obj-$(CONFIG_ARCH_MEDIATEK) += mboot_params/
