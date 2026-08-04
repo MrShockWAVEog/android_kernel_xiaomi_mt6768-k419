@@ -88,6 +88,14 @@ static struct stAF_DrvList g_stAF_DrvList[MAX_NUM_OF_LENS] = {
 	 BU24253AF_Release, BU24253AF_GetFileName, NULL},
 	{1, AFDRV_GT9772AF, GT9772AF_SetI2Cclient, GT9772AF_Ioctl,
 	 GT9772AF_Release, GT9772AF_GetFileName, NULL},
+#ifdef CONFIG_MTK_LENS_CN3927AF_SUPPORT
+	{1, AFDRV_CN3927AF, CN3927AF_SetI2Cclient_Main3, CN3927AF_Ioctl_Main3,
+	 CN3927AF_Release_Main3, CN3927AF_GetFileName_Main3, NULL},
+#endif
+#ifdef CONFIG_MTK_LENS_DW9714VAF_SUPPORT
+	{1, AFDRV_DW9714VAF, DW9714VAF_SetI2Cclient_Main3, DW9714VAF_Ioctl_Main3,
+	 DW9714VAF_Release_Main3, DW9714VAF_GetFileName_Main3, NULL},
+#endif
 };
 
 static struct stAF_DrvList *g_pstAF_CurDrv;
@@ -119,7 +127,7 @@ static void camaf_power_init(void)
 
 	/* check if customer camera node defined */
 	node = of_find_compatible_node(
-		NULL, NULL, "mediatek,camera_af_lens");
+		NULL, NULL, "mediatek,camera_hw");
 
 	if (node) {
 		kd_node = lens_device->of_node;

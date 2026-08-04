@@ -32,3 +32,10 @@ obj-$(CONFIG_MTK_LENS)    += main3af.o
 main3af-y  += main3_lens.o
 main3af-y  += common/bu24253af/BU24253AF.o
 main3af-y  += common/gt9772af/GT9772AF.o
+ifeq ($(CONFIG_MTK_LENS_CN3927AF_SUPPORT), y)
+main3af-y  += common/cn3927af/CN3927AF.o
+endif
+
+ifeq ($(CONFIG_MTK_LENS_DW9714VAF_SUPPORT), y)
+main3af-y  += common/dw9714vaf/DW9714VAF.o
+endif
