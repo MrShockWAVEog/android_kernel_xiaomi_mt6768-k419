@@ -495,7 +495,6 @@
 			regulator-enable-ramp-delay = <60>;
 		};
 		mt_pmic_vldo28_ldo_reg: ldo_vldo28 {
-			compatible = "regulator-fixed";
 			regulator-name = "vldo28";
 			regulator-min-microvolt = <2800000>;
 			regulator-max-microvolt = <2800000>;
