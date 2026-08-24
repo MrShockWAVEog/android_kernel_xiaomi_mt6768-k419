@@ -554,7 +554,6 @@
 };
 
 &touch {
-	vtouch-supply = <&mt_pmic_vldo28_ldo_reg>;
 	status = "okay";
 };
 

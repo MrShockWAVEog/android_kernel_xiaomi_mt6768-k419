@@ -388,7 +388,6 @@
 	pinctrl-49 = <&camera3_vcamd_on>;
 
 
-	cam0_vcamaf-supply = <&mt_pmic_vldo28_ldo_reg>;
 	cam2_vcama-supply = <&mt_pmic_vcama1_ldo_reg>;
 	cam3_vcama-supply = <&mt_pmic_vcama2_ldo_reg>;
 	cam4_vcama-supply = <&mt_pmic_vcama2_ldo_reg>;
@@ -401,6 +400,7 @@
 	cam2_vcamio-supply = <&mt_pmic_vcamio_ldo_reg>;
 	cam3_vcamio-supply = <&mt_pmic_vcamio_ldo_reg>;
 	cam4_vcamio-supply = <&mt_pmic_vcamio_ldo_reg>;
+	cam0_vcamaf-supply = <&mt_pmic_vldo28_ldo_reg>;
 	status = "okay";
 
 	cam0_enable_sensor = "ov13b10_ofilm_mipi_raw ov13b10_qtech_mipi_raw s5k3l6_qtech_mipi_raw";

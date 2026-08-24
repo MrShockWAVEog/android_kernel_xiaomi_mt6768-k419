@@ -360,8 +360,6 @@
 	pinctrl-45 = <&camera4_mclk_8mA>;
 
 
-	cam0_vcamaf-supply = <&mt_pmic_vldo28_ldo_reg>;
-	cam4_vcamaf-supply = <&mt_pmic_vldo28_ldo_reg>;
 	cam2_vcama-supply = <&mt_pmic_vcama1_ldo_reg>;
 	cam3_vcama-supply = <&mt_pmic_vcama2_ldo_reg>;
 	cam4_vcama-supply = <&mt_pmic_vcama2_ldo_reg>;
@@ -373,6 +371,8 @@
 	cam2_vcamio-supply = <&mt_pmic_vcamio_ldo_reg>;
 	cam3_vcamio-supply = <&mt_pmic_vcamio_ldo_reg>;
 	cam4_vcamio-supply = <&mt_pmic_vcamio_ldo_reg>;
+	cam0_vcamaf-supply = <&mt_pmic_vldo28_ldo_reg>;
+	cam4_vcamaf-supply = <&mt_pmic_vldo28_ldo_reg>;
 
 	cam0_enable_sensor = "s5kgm1sp_mipi_raw s5kgm1sp_sunny_mipi_raw";
 	cam1_enable_sensor = "ov13b10_mipi_raw ov13b10_sunny_mipi_raw";
