@@ -1740,7 +1740,7 @@ static inline void mmc_set_ios(struct mmc_host *host)
 {
 	struct mmc_ios *ios = &host->ios;
 
-	dev_info(host->parent, "%s: clock %uHz busmode %u powermode %u cs %u Vdd %u "
+	pr_debug("%s: clock %uHz busmode %u powermode %u cs %u Vdd %u "
 		"width %u timing %u\n",
 		 mmc_hostname(host), ios->clock, ios->bus_mode,
 		 ios->power_mode, ios->chip_select, ios->vdd,
@@ -1796,7 +1796,7 @@ int mmc_execute_tuning(struct mmc_card *card)
 		pr_info("%s: tuning execution failed: %d\n",
 			mmc_hostname(host), err);
 	} else {
-		pr_info("%s: tuning execution ok: %d\n",
+		pr_debug("%s: tuning execution ok: %d\n",
 			mmc_hostname(host), err);
 		mmc_retune_enable(host);
 	}
