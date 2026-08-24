@@ -73,6 +73,7 @@ struct mtk_wdt_dev {
 	void __iomem *wdt_base;
 	spinlock_t lock; /* protects WDT_SWSYSRST reg */
 	struct reset_controller_dev rcdev;
+	bool was_running;
 };
 
 struct mtk_wdt_data {
@@ -361,8 +362,10 @@ static int mtk_wdt_probe(struct platform_device *pdev)
 static int mtk_wdt_suspend(struct device *dev)
 {
 	struct mtk_wdt_dev *mtk_wdt = dev_get_drvdata(dev);
-	if (watchdog_hw_running(&mtk_wdt->wdt_dev))
-		mtk_wdt_stop(&mtk_wdt->wdt_dev);
+
+	mtk_wdt->was_running = watchdog_hw_running(&mtk_wdt->wdt_dev);
+	if (mtk_wdt->was_running)
+		return mtk_wdt_stop(&mtk_wdt->wdt_dev);
 
 	return 0;
 }
@@ -370,13 +373,17 @@ static int mtk_wdt_suspend(struct device *dev)
 static int mtk_wdt_resume(struct device *dev)
 {
 	struct mtk_wdt_dev *mtk_wdt = dev_get_drvdata(dev);
+	int ret;
 
-	if (watchdog_hw_running(&mtk_wdt->wdt_dev)) {
-		mtk_wdt_start(&mtk_wdt->wdt_dev);
-		mtk_wdt_ping(&mtk_wdt->wdt_dev);
-	}
+	if (!mtk_wdt->was_running)
+		return 0;
 
-	return 0;
+	mtk_wdt->was_running = false;
+	ret = mtk_wdt_start(&mtk_wdt->wdt_dev);
+	if (ret)
+		return ret;
+
+	return mtk_wdt_ping(&mtk_wdt->wdt_dev);
 }
 
 static const struct dev_pm_ops mtk_wdt_pm_ops = {
