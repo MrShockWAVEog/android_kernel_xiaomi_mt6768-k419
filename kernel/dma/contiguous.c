@@ -243,6 +243,16 @@ static const struct reserved_mem_ops rmem_cma_ops = {
 	.device_release = rmem_cma_device_release,
 };
 
+/*
+ * svp_scheme is 0x15000000 (352MB), but it is the sum of two features:
+ *   svp-region-based-size = 0x10000000  256MB  secure video path
+ *   wfd-size              = 0x5000000    80MB  WiFi Display
+ * Only the secure video path matters for DRM playback, and it cannot be
+ * in use at the same time as WiFi Display on a device like this, so cap
+ * at the SVP region alone.
+ */
+#define SSMR_CMA_CAP	(256UL * SZ_1M)
+
 static int __init rmem_cma_setup(struct reserved_mem *rmem)
 {
 	phys_addr_t align = PAGE_SIZE << max(MAX_ORDER - 1, pageblock_order);
@@ -258,6 +268,42 @@ static int __init rmem_cma_setup(struct reserved_mem *rmem)
 	if ((rmem->base & mask) || (rmem->size & mask)) {
 		pr_err("Reserved memory: incorrect alignment of CMA region\n");
 		return -EINVAL;
+	}
+
+	/*
+	 * The bootloader supplies its own device tree (it reports itself as
+	 * MT6769Z, not the MT6768 tree built from this source), so the SSMR
+	 * node cannot be resized in the dts: whatever size is written there is
+	 * ignored. What LK hands over is a 528MB pool, which on the 3GB variant
+	 * is 20% of RAM that ordinary allocations never get. The device then
+	 * lives at the low watermark - 68 lmkd kills in the first two minutes
+	 * after boot, with 87% of the memory lmkd counted as free being free
+	 * CMA that it has to subtract.
+	 *
+	 * SSMR states its own requirement at probe time:
+	 *   memory-ssmr: finalize_scenario_size, svp_scheme: 0x15000000
+	 * 352MB for the largest scheme, and 0 for every other scheme. See the
+	 * cap definition for why 256MB of that is the part worth keeping.
+	 *
+	 * Capping at 352MB was not enough: under load the page cache gets
+	 * evicted out of CMA and 241MB of the pool sits free while only 8MB of
+	 * ordinary memory is left, kswapd runs at 59%% and system_server takes
+	 * 32k major faults in 22s. Both 256MB and the tail are multiples of
+	 * the 4MB CMA alignment FORCE_MAX_ZONEORDER=11 gives us.
+	 */
+	if (rmem->name && !strcmp(rmem->name, "ssmr-reserved-cma_memory") &&
+	    rmem->size > SSMR_CMA_CAP) {
+		phys_addr_t tail = rmem->size - SSMR_CMA_CAP;
+
+		if (!memblock_free(rmem->base + SSMR_CMA_CAP, tail)) {
+			pr_info("Reserved memory: %s capped at %lu MiB, %lu MiB returned\n",
+				rmem->name, (unsigned long)SSMR_CMA_CAP / SZ_1M,
+				(unsigned long)tail / SZ_1M);
+			rmem->size = SSMR_CMA_CAP;
+		} else {
+			pr_warn("Reserved memory: could not shrink %s, leaving %lu MiB\n",
+				rmem->name, (unsigned long)rmem->size / SZ_1M);
+		}
 	}
 
 	err = cma_init_reserved_mem(rmem->base, rmem->size, 0, rmem->name, &cma);
