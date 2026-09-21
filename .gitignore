@@ -131,3 +131,8 @@ all.config
 
 # Kdevelop4
 *.kdev4
+
+# Patch backups and rejected hunks
+*.org
+*.orig
+*.rej
