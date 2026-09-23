@@ -1,0 +1,28 @@
+Mali r54p2 port for the MT6768 Linux 4.19 tree
+============================================
+
+Source: https://github.com/Jbub5/android_kernel_xiaomi_mt6768-legacy
+Branch: mali-driver-update-next
+Revision: f643cf79be3da0e42832ace260a33831f978a3d5
+Release: r54p2-01eac0
+
+Only the Mali DDK update was imported from the source's Linux 4.14 tree.
+The kernel remains Linux 4.19. The historical mali_bifrost/mali-r25p0
+path is retained; the release reported to userspace comes from Kbuild.
+vendor/mt6768_defconfig selects this updated driver.
+
+Port adaptations:
+- Use this tree's GPU include paths, mmap_lock API and static_assert header.
+- Select the real-hardware backend explicitly in the vendor build, which
+  does not source the DDK Kconfig defaults.
+- Keep legacy GPU tracepoints disabled because trace/events/gpu.h is absent;
+  the separate gpu_mem tracepoint remains available.
+- Preserve MediaTek secure-buffer physical-address translation and the
+  current MT6768 bounded idle wait and timestamp register setup.
+- Retain global and per-process total_gpu_mem/dma_buf_gpu_mem sysfs nodes,
+  adapting accounting and kobject lifetime management to the new driver.
+
+Validation: ARM64 compilation of drivers/gpu/mediatek/ with
+vendor/mt6768_defconfig and GCC 13, followed by a relocatable link of the
+GPU archive and a check for unresolved Mali/GED internal symbols.
+A full kernel build and on-device validation are still required.

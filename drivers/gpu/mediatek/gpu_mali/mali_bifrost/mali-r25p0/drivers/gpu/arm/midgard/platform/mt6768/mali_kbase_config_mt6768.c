@@ -52,6 +52,8 @@ static int g_curFreqID;
 static void __mtk_check_MFG_idle(void)
 {
 	u32 val;
+	int i = 0;
+	int timeout = 1000;
 
 	/* MFG_QCHANNEL_CON (0x130000b4) bit [1:0] = 0x1 */
 	writel(0x00000001, g_MFG_base + 0xb4);
@@ -67,7 +69,13 @@ static void __mtk_check_MFG_idle(void)
 	do {
 		val = readl(g_MFG_base + 0x178);
 		mali_pr_debug("@%s: 0x13000178 val = 0x%x\n", __func__, val);
-	} while ((val & 0x4) != 0x4);
+		// wait for about 1s then timeout, GPU can power off directly
+		if(i>100)
+			udelay(1000); //1ms
+		if(i == timeout)
+			mali_pr_info("@%s: timeout waiting for 0x13000178 val = 0x%x\n", __func__, val);
+		i++;
+	} while ((val & 0x4) != 0x4 &&(i<=timeout));
 }
 
 static void __mtk_enable_MFG_internal_CG(void)
@@ -134,7 +142,7 @@ static int pm_callback_power_on_nolock(struct kbase_device *kbdev)
 
 	/* Write 1 into 0x13000130 bit 0 to enable timestamp register (TIMESTAMP).*/
 	/* TIMESTAMP will be used by clGetEventProfilingInfo.*/
-	writel(0x00000001, g_MFG_base + 0x130);
+	writel(0x00000003, g_MFG_base + 0x130);
 
 #ifdef MT_GPUFREQ_SRAM_DEBUG
 	aee_rr_rec_gpu_dvfs_status(0x6 | (aee_rr_curr_gpu_dvfs_status() & 0xF0));

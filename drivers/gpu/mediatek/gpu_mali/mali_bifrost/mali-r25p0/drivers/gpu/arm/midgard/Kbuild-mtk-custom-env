@@ -1,9 +1,13 @@
-$(info mali MTK evironment, building r19p0 DDK)
+$(info mali MTK evironment, building r54p2 DDK)
 
 MTK_TOP = $(srctree)/drivers/misc/mediatek/
 
 # build support for a ARM Mali Midgard GPU
 CONFIG_MALI_MIDGARD := y
+# This vendor build does not source the DDK Kconfig defaults.
+CONFIG_MALI_REAL_HW := y
+CONFIG_MALI_KUTF := n
+ccflags-y += -DCONFIG_MALI_REAL_HW=1
 
 # use mtk platform
 CONFIG_MALI_PLATFORM_THIRDPARTY := y
@@ -12,12 +16,13 @@ CONFIG_MALI_PLATFORM_THIRDPARTY_NAME := $(CONFIG_MTK_PLATFORM)
 $(info mtk-Kbuild CONFIG_MALI_PLATFORM_THIRDPARTY := $(CONFIG_MALI_PLATFORM_THIRDPARTY))
 $(info mtk-Kbuild CONFIG_MALI_PLATFORM_THIRDPARTY_NAME := $(CONFIG_MALI_PLATFORM_THIRDPARTY_NAME))
 
-CONFIG_MALI_DEBUG := y
+CONFIG_MALI_DEBUG := n
+CONFIG_GPU_TRACEPOINTS := n
 
-ccflags-y += -I-I$(srctree)/include
+ccflags-y += -I$(srctree)/include
 ccflags-y += -I$(srctree)/drivers/staging/android
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/$(CONFIG_MTK_PLATFORM)
-ccflags-y += -I$(srctree)/drivers/misc/mediatek/gpu/ged/include
+ccflags-y += -I$(srctree)/drivers/gpu/mediatek/ged/include
 ccflags-y += -I$(srctree)/drivers/gpu/mediatek/gpu_bm
 ccflags-y += -I$(srctree)/drivers/gpu/mediatek/gpufreq/$(CONFIG_MTK_PLATFORM)
 
@@ -40,3 +45,7 @@ ifneq (, $(findstring $(CONFIG_MTK_PLATFORM), "mt6771"))
 ccflags-y += -DENABLE_MTK_DEBUG
 $(info *GPU defined ENABLE_MTK_DEBUG)
 endif
+
+ccflags-y += -I$(srctree)/drivers/gpu/mediatek/gpufreq
+ccflags-y += -I$(srctree)/drivers/gpu/mediatek/mt-plat
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/include
